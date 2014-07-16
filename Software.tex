@@ -19,14 +19,160 @@ U-boot is the bootloader. The linux-sunxi fork is used as a base.
 
 \section{Linux Kernel}
 
-\subsection{Branches}
+\subsection{Intro}
+
+This is the development archive of software used in version Camillia of the
+LulzBot Easy TAZ Mini 3D Printer by Aleph Objects, Inc.
+
+All software is copyright by the respective upstream authors, except new
+additions, which are copyright by Aleph Objects, Inc. under the GPLv3.
+
+
+
+\subsection{Kernel Branch}
+
+We will be using Linux Sunxi as the base source code for the kernel.
+
+
+There are various kernel branches that could be used as a base:
+
 \begin{itemize}
-  \item \texttt{...}
+  \item{Mainline Linus -- This doesn't have much of the latest/greatest for A20.
+
+  \url{git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git}}
+
+  \item{Linksprite -- This is optimized for pcduino3, which is very similar to the
+  board we'll be using. It uses non-free software, such as the Mali driver.
+  Using it as a base will be a bit messy. It also does non-standard patching
+  in the build process, instead of just committing everything to git. The
+  build system overall is nice and does more than just the kernel. It depends
+  upon the non-free Allwinner livesuit image tools. We will use another tree
+  as a base, but will pick select drivers from this one.
+
+  \url{git://github.com/pcduino/a20-kernel.git}}
+
+  \item{Linux Sunxi -- This is the main kernel branch for the Sunxi platform built
+  upon the Allwinner ARM chips. It is actively maintained. The Easy TAZ Mini
+  core is built upon their various archives. Main website:
+
+  \url{http://linux-sunxi.org/}
+
+  \url{git://github.com/linux-sunxi/linux-sunxi.git}}
+
 \end{itemize}
 
-\subsection{Versions}
+
+
+\subsection{Kernel Version}
+
+We will be using the main linux-sunxi git repo, using the sunxi-3.4 branch as
+the main base for the Linux kernel. The latest version is 3.4.90.
+
+There are also various kernel versions we could chose from. Some options:
+
 \begin{itemize}
-  \item \texttt{...}
+  \item sunxi-next -- This looks pretty good. Worth exploring more.
+
+  \item sunxi-devel -- Probably not.
+
+  \item 3.4.79+ -- This is the kernel that gets built by the default a20-kernel
+  archive from Linksprite. Known to work. Has non-free software.
+
+  \item 3.14 -- This is the latest version from the sunxi-3.14 branch of the main
+  linux-sunxi kernel. It has not seen as much development or testing as
+  sunxi-3.4. It does have -sunxi patches and is based on a much more recent
+  upstream kernel. The one test kernel I built didn't fully boot, but it
+  likely can be made to work without too much pain. As it hasn't seen as much
+  real-world usage, sunxi-3.4 is preferred.
+
+  \item 3.4.90 -- This is the latest version from the sunxi-3.4 branch of the main
+  linux-sunxi kernel. This is known to work. We will likely use a version of
+  this kernel.
+\end{itemize}
+
+\subsection{Building the Kernel}
+
+
+Quickie overview:
+
+\begin{enumerate}
+  \item {Clone the kernel archive we want to use:
+  
+  \verb|git clone| \url{git://github.com/linux-sunxi/linux-sunxi.git}
+  
+  \verb|cd linux-sunxi|
+  }
+
+  \item{Checkout the branch we want:
+  
+  \verb|git checkout sunxi-3.4|
+  }
+
+  \item{Copy over camillia kernel config (check for newer version):
+  
+  \verb|wget| \url{http://devel.lulzbot.com/Easy_TAZ_Mini/camellia/software/current/OUTPUT/eztaz_defconfig/eztaz_defconfig-ao11}
+  
+  \verb|cp eztaz_defconfig-ao11 linux-sunxi/.config|
+  }
+
+  \item{Go into kernel config and make whatever changes:
+
+  \begin{verbatim}
+  LOADADDR=0x40008000 make -j1 ARCH=arm         \
+  CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
+  \end{verbatim}
+  }
+
+  \item{Copy that \verb|.config| somewhere as backup
+  
+  \verb|cp .config ../OUTPUT/eztaz_defconfig/eztaz_defconfig-ao999|
+  }
+
+  \item{Build the kernel uImage and modules:
+  
+  \begin{verbatim}
+  LOADADDR=0x40008000 make -j4 ARCH=arm         \
+  CROSS_COMPILE=arm-linux-gnueabihf- uImage modules dtbs
+  \end{verbatim}
+  }
+
+  \item{Install kernel modules to the \texttt{OUTPUT} dir:
+
+  \begin{verbatim}
+  LOADADDR=0x40008000 make -j4 ARCH=arm         \
+  CROSS_COMPILE=arm-linux-gnueabihf-            \
+  INSTALL_MOD_PATH=../OUTPUT modules_install
+  \end{verbatim}
+  }
+
+\end{enumerate}
+
+
+Misc build commands
+
+\begin{itemize}
+  \item{This will build the default sun7i (pcduino3) kernel (example):
+  
+  \begin{verbatim}
+  LOADADDR=0x40008000 make -j4 ARCH=arm		\
+  CROSS_COMPILE=arm-linux-gnueabihf-		\
+  sun7i_defconfig
+  \end{verbatim}
+  }
+
+  \item{If you need to clean up:
+  
+  \begin{verbatim}
+  make clean ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+  \end{verbatim}
+  }
+
+  \item{You probably don't need to:
+  
+  \begin{verbatim}
+  make mrproper ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+  \end{verbatim}
+  }
 \end{itemize}
 
 
