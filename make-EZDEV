@@ -4,11 +4,11 @@ set -x
 
 rm EZDEV.pdf 
 xelatex -interaction=nonstopmode EZDEV.tex 
-rm EZDEV-thumbnail.pdf
-xelatex -interaction=nonstopmode EZDEV-thumbnail.tex
-evince EZDEV-thumbnail.pdf EZDEV.pdf &
+#rm EZDEV-thumbnail.pdf
+#xelatex -interaction=nonstopmode EZDEV-thumbnail.tex
+#evince EZDEV-thumbnail.pdf EZDEV.pdf &
 
-#evince EZDEV.pdf &
+evince EZDEV.pdf &
 
 echo
 

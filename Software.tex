@@ -181,15 +181,16 @@ CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
   \verb|cp .config ../OUTPUT/eztaz_defconfig/eztaz_defconfig-ao999|
   }
 
-  \item{Build the kernel uImage and modules:
+  \item{Build the kernel uImage (no modules):
   
   \begin{verbatim}
 LOADADDR=0x40008000 make -j4 ARCH=arm         \
-CROSS_COMPILE=arm-linux-gnueabihf- uImage modules dtbs
+CROSS_COMPILE=arm-linux-gnueabihf- uImage dtbs
   \end{verbatim}
   }
 
-  \item{Install kernel modules to the \texttt{OUTPUT} dir:
+  \item{DEPRECATED, no modules now:
+  Install kernel modules to the \texttt{OUTPUT} dir:
 
   \begin{verbatim}
 LOADADDR=0x40008000 make -j4 ARCH=arm         \
@@ -241,22 +242,24 @@ The root filesystem is Debian Wheezy using the armhf architecture.
 Commands, briefly, to build a rootfs:
 
 \begin{enumerate}
+  \item{mkdir rootfs}
   \item{
   \begin{verbatim}
 sudo debootstrap --verbose --arch=armhf --foreign wheezy  \
-/home/aleph/devel/eztaz/upstream/debian
+./rootfs
   \end{verbatim}
   }
+% --include=alpha,beta to include specific packages
 
   \item{
   \begin{verbatim}
 sudo cp -p /usr/bin/qemu-arm-static                      \
-/home/aleph/devel/eztaz/upstream/debian/usr/bin/
+./rootfs/usr/bin/
   \end{verbatim}
   }
 
   \item{
-\verb|sudo chroot /home/aleph/devel/eztaz/upstream/debian|
+\verb|sudo chroot ./rootfs|
   }
 
   \item{
@@ -344,11 +347,71 @@ Filesystem options for users' USB drives:
   \item{Debian Wheezy}
   \item{emdebian repo} -- cross compilers
   \item{Fix compiler paths} -- cross compilers, use ccache
-
 \end{itemize}
 
+\subsubsection{Cross Compiler}
+To compile ARM packages, a cross compiler must be set up.
 
-\section{Graphical User Interface}
+\begin{enumerate}
+  \item{Add emdebian Repo -- Add this line to \verb|/etc/apt/sources.list|:
+
+
+   \verb|deb http://www.emdebian.org/debian/ unstable main|}
+  \item{Update -- 
+
+\verb|apt-get update|}
+  \item{Install key -- 
+
+\verb|sudo apt-get install emdebian-archive-keyring|}
+  \item{Install Cross Compilers --
+   \begin{verbatim}
+   apt-get install                   \
+   cpp-4.7-arm-linux-gnueabihf       \
+   g++-4.7-arm-linux-gnueabihf       \
+   gcc-4.7-arm-linux-gnueabihf       \
+   gcc-4.7-arm-linux-gnueabihf-base  \
+   gcc-4.7-plugin-dev-arm-linux-gnueabihf
+   \end{verbatim}
+   }
+  \item{Install (not all needed? Note, some in backports):
+
+  \begin{verbatim}
+  libncurses-dev build-essential
+  ccache git autoconf autoconf2.13
+  gnu-standards libtool u-boot-tools
+  debootstrap qemu qemu-user-static
+  \end{verbatim}
+
+  \item{Update everything to latest in wheezy-backports:
+  \verb|apt-get -t wheezy-backports dist-upgrade|}
+}
+
+
+\verb|apt-get install ccache git|}
+  \item{Add this to \verb|~/.bashrc| -- 
+
+
+\verb|export PATH="/usr/lib/ccache:$PATH"|}
+
+\item{Set up symlinks without version numbers (super crufty)
+
+   \begin{verbatim}
+   cd /usr/lib/ccache/
+   sudo ln -s ../../bin/ccache arm-linux-gnueabihf-g++
+   sudo ln -s ../../bin/ccache arm-linux-gnueabihf-gcc
+   cd /usr/bin/
+   sudo ln -s arm-linux-gnueabihf-cpp-4.7 arm-linux-gnueabihf-cpp
+   sudo ln -s arm-linux-gnueabihf-g++-4.7 arm-linux-gnueabihf-g++
+   sudo ln -s arm-linux-gnueabihf-gcc-4.7 arm-linux-gnueabihf-gcc
+   sudo ln -s arm-linux-gnueabihf-gcc-ar-4.7 arm-linux-gnueabihf-gcc-ar
+   sudo ln -s arm-linux-gnueabihf-gcc-nm-4.7 arm-linux-gnueabihf-gcc-nm
+   sudo ln -s arm-linux-gnueabihf-gcc-ranlib-4.7 arm-linux-gnueabihf-gcc-ranlib
+   sudo ln -s arm-linux-gnueabihf-gcov-4.7 arm-linux-gnueabihf-gcov
+   \end{verbatim}
+   }
+
+\end{enumerate}
+
 
 \begin{itemize}
   \item{fb}
